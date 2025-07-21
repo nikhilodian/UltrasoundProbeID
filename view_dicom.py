@@ -10,7 +10,6 @@ import json
 def show_dicom_image(ds, filename):
     img = ds.pixel_array
 
-    # Handle multi-frame images by selecting the first frame
     if img.ndim == 4:
         print(f"Multi-frame image detected. Shape: {img.shape}")
         img = img[0]
@@ -24,7 +23,6 @@ def show_dicom_image(ds, filename):
     plt.close()
 
 def load_and_display_all_dicoms(directory_path):
-    # Get all .dcm files
     dicom_files = sorted([
         f for f in os.listdir(directory_path)
         if f.lower().endswith('.dcm')
@@ -38,25 +36,38 @@ def load_and_display_all_dicoms(directory_path):
         full_path = os.path.join(directory_path, filename)
         print(f"\n📄 Displaying: {filename}")
 
-        # Read DICOM file
         ds = pydicom.dcmread(full_path)
 
-        # Load and pretty-print matching JSON
+        # Match and process corresponding JSON
         json_filename = os.path.splitext(filename)[0] + '.json'
         json_path = os.path.join(directory_path, json_filename)
 
         if os.path.exists(json_path):
-            print("📋 Associated JSON metadata:")
             try:
                 with open(json_path, 'r') as f:
                     data = json.load(f)
-                    print(json.dumps(data, indent=4))
+
+                # Extract Inner Radius and classify
+                inner_radius = data.get("Inner Radius", None)
+                if inner_radius is not None:
+                    label = "phased-array" if inner_radius <= 5 else "curvilinear"
+                    print(f"\n🔍 Detected probe type: {label} (Inner Radius = {inner_radius})")
+
+                    # Add to Annotation Labels
+                    if "Annotation Labels" not in data or not isinstance(data["Annotation Labels"], list):
+                        data["Annotation Labels"] = []
+                    data["Annotation Labels"].append(label)
+                else:
+                    print("⚠️  Inner Radius not found in JSON.")
+
+                print("\n📋 Updated JSON metadata:")
+                print(json.dumps(data, indent=4))
+
             except json.JSONDecodeError:
                 print(f"⚠️  Warning: Could not parse JSON file: {json_filename}")
         else:
             print(f"⚠️  No matching JSON file found: {json_filename}")
 
-        # Show image and wait for user
         show_dicom_image(ds, filename)
 
 if __name__ == "__main__":
