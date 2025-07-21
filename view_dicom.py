@@ -47,18 +47,18 @@ def load_and_display_all_dicoms(directory_path):
                 with open(json_path, 'r') as f:
                     data = json.load(f)
 
-                # Extract Inner Radius and classify
-                inner_radius = data.get("Inner Radius", None)
+                # Extract radius1 and classify
+                inner_radius = data.get("radius1", None)
                 if inner_radius is not None:
                     label = "phased-array" if inner_radius <= 5 else "curvilinear"
-                    print(f"\n🔍 Detected probe type: {label} (Inner Radius = {inner_radius})")
+                    print(f"\n🔍 Detected probe type: {label} (radius1 = {inner_radius})")
 
                     # Add to Annotation Labels
                     if "Annotation Labels" not in data or not isinstance(data["Annotation Labels"], list):
                         data["Annotation Labels"] = []
                     data["Annotation Labels"].append(label)
                 else:
-                    print("⚠️  Inner Radius not found in JSON.")
+                    print("⚠️  radius1 not found in JSON.")
 
                 print("\n📋 Updated JSON metadata:")
                 print(json.dumps(data, indent=4))
