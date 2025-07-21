@@ -59,7 +59,7 @@ def load_and_display_all_dicoms(directory_path):
                     else:
                         existing_label = data["Annotation Labels"][0]
                         if label not in existing_label:
-                            updated_label = f"{existing_label} | {label}"
+                            updated_label = f"{existing_label} {label}"
                             data["Annotation Labels"][0] = updated_label
 
                     # Save updated dictionary to file
