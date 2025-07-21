@@ -53,10 +53,14 @@ def load_and_display_all_dicoms(directory_path):
                     label = "phased-array" if inner_radius <= 5 else "curvilinear"
                     print(f"\n🔍 Detected probe type: {label} (radius1 = {inner_radius})")
 
-                    # Add to Annotation Labels
-                    if "Annotation Labels" not in data or not isinstance(data["Annotation Labels"], list):
-                        data["Annotation Labels"] = []
-                    data["Annotation Labels"].append(label)
+                    # Update Annotation Labels intelligently
+                    if "Annotation Labels" not in data or not isinstance(data["Annotation Labels"], list) or not data["Annotation Labels"]:
+                        data["Annotation Labels"] = [label]
+                    else:
+                        existing_label = data["Annotation Labels"][0]
+                        if label not in existing_label:
+                            updated_label = f"{existing_label} | {label}"
+                            data["Annotation Labels"][0] = updated_label
 
                     # Save updated dictionary to file
                     with open(json_path, 'w') as f:
