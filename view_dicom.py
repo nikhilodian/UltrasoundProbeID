@@ -47,6 +47,11 @@ def load_and_display_all_dicoms(directory_path):
                 with open(json_path, 'r') as f:
                     data = json.load(f)
 
+                # Skip files with rectangular masks
+                if data.get("mask_type") == "rectangle":
+                    print("🚫 Skipping due to rectangular mask")
+                    continue
+
                 # Extract radius1 and classify
                 inner_radius = data.get("radius1", None)
                 if inner_radius is not None:
@@ -59,7 +64,7 @@ def load_and_display_all_dicoms(directory_path):
                     else:
                         existing_label = data["Annotation Labels"][0]
                         if label not in existing_label:
-                            updated_label = f"{existing_label} {label}"
+                            updated_label = f"{existing_label} | {label}"
                             data["Annotation Labels"][0] = updated_label
 
                     # Save updated dictionary to file
