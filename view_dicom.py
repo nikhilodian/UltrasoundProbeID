@@ -57,6 +57,10 @@ def load_and_display_all_dicoms(directory_path):
                     if "Annotation Labels" not in data or not isinstance(data["Annotation Labels"], list):
                         data["Annotation Labels"] = []
                     data["Annotation Labels"].append(label)
+
+                    # Save updated dictionary to file
+                    with open(json_path, 'w') as f:
+                        json.dump(data, f, indent=4)
                 else:
                     print("⚠️  radius1 not found in JSON.")
 
