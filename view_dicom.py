@@ -21,3 +21,4 @@ if __name__ == "__main__":
         print("Usage: python view_dicom.py <path_to_dicom_file>")
         sys.exit(1)
     show_dicom_image(sys.argv[1])
+    
