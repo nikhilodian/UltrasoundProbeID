@@ -44,7 +44,6 @@ def load_and_display_all_dicoms(root_dir):
 
                     inner_radius = data.get("radius1", None)
 
-                    show_dicom_image(ds, filename)
 
                     if inner_radius is None:
                         print("⚠️  radius1 not found in JSON.")
@@ -52,9 +51,11 @@ def load_and_display_all_dicoms(root_dir):
                         continue
 
                     if 5 < inner_radius < 10:
+                        show_dicom_image(ds, filename)
                         print(f"🤔 radius1 = {inner_radius}, please decide:")
                         user_input = input("Enter 'p' for phased-array or 'c' for curvilinear: ").strip().lower()
                         label = "phased-array" if user_input == 'p' else "curvilinear"
+                        plt.close()
                     else:
                         label = "phased-array" if inner_radius <= 5 else "curvilinear"
                         print(f"🔍 Detected probe type: {label} (radius1 = {inner_radius})")
@@ -72,7 +73,6 @@ def load_and_display_all_dicoms(root_dir):
                     print("\n📋 Updated JSON metadata:")
                     print(json.dumps(data, indent=4))
 
-                    plt.close()
 
                 except json.JSONDecodeError:
                     print(f"⚠️  Warning: Could not parse JSON file: {json_filename}")
