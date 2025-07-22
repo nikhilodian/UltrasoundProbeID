@@ -19,8 +19,6 @@ def show_dicom_image(ds, filename):
     plt.title(f"{filename} — Modality: {modality}")
     plt.axis('off')
     plt.show(block=False)
-    input("Press Enter to continue to the next image...")
-    plt.close()
 
 def load_and_display_all_dicoms(directory_path):
     dicom_files = sorted([
@@ -51,7 +49,7 @@ def load_and_display_all_dicoms(directory_path):
                 if data.get("mask_type") == "rectangle":
                     print("🚫 Skipping due to rectangular mask")
                     continue
-
+                show_dicom_image(ds, filename)
                 # Extract radius1 and classify
                 inner_radius = data.get("radius1", None)
                 if inner_radius is not None:
@@ -75,13 +73,13 @@ def load_and_display_all_dicoms(directory_path):
 
                 print("\n📋 Updated JSON metadata:")
                 print(json.dumps(data, indent=4))
-
+                input("Press Enter to continue to the next image...")
+                plt.close()
             except json.JSONDecodeError:
                 print(f"⚠️  Warning: Could not parse JSON file: {json_filename}")
         else:
             print(f"⚠️  No matching JSON file found: {json_filename}")
 
-        show_dicom_image(ds, filename)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
