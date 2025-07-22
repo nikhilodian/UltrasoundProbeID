@@ -20,66 +20,64 @@ def show_dicom_image(ds, filename):
     plt.axis('off')
     plt.show(block=False)
 
-def load_and_display_all_dicoms(directory_path):
-    dicom_files = sorted([
-        f for f in os.listdir(directory_path)
-        if f.lower().endswith('.dcm')
-    ])
+def load_and_display_all_dicoms(root_dir):
+    for dirpath, _, files in os.walk(root_dir):
+        dicom_files = sorted([f for f in files if f.lower().endswith('.dcm')])
+        
+        for filename in dicom_files:
+            full_path = os.path.join(dirpath, filename)
+            print(f"\n📄 Displaying: {full_path}")
 
-    if not dicom_files:
-        print("No DICOM files found in the directory.")
-        return
+            ds = pydicom.dcmread(full_path)
 
-    for filename in dicom_files:
-        full_path = os.path.join(directory_path, filename)
-        print(f"\n📄 Displaying: {filename}")
+            json_filename = os.path.splitext(filename)[0] + '.json'
+            json_path = os.path.join(dirpath, json_filename)
 
-        ds = pydicom.dcmread(full_path)
+            if os.path.exists(json_path):
+                try:
+                    with open(json_path, 'r') as f:
+                        data = json.load(f)
 
-        # Match and process corresponding JSON
-        json_filename = os.path.splitext(filename)[0] + '.json'
-        json_path = os.path.join(directory_path, json_filename)
+                    if data.get("mask_type") == "rectangle":
+                        print("🚫 Skipping due to rectangular mask")
+                        continue
 
-        if os.path.exists(json_path):
-            try:
-                with open(json_path, 'r') as f:
-                    data = json.load(f)
+                    inner_radius = data.get("radius1", None)
 
-                # Skip files with rectangular masks
-                if data.get("mask_type") == "rectangle":
-                    print("🚫 Skipping due to rectangular mask")
-                    continue
-                show_dicom_image(ds, filename)
-                # Extract radius1 and classify
-                inner_radius = data.get("radius1", None)
-                if inner_radius is not None:
-                    label = "phased-array" if inner_radius <= 5 else "curvilinear"
-                    print(f"\n🔍 Detected probe type: {label} (radius1 = {inner_radius})")
+                    show_dicom_image(ds, filename)
 
-                    # Update Annotation Labels intelligently
+                    if inner_radius is None:
+                        print("⚠️  radius1 not found in JSON.")
+                        plt.close()
+                        continue
+
+                    if 5 < inner_radius < 10:
+                        print(f"🤔 radius1 = {inner_radius}, please decide:")
+                        user_input = input("Enter 'p' for phased-array or 'c' for curvilinear: ").strip().lower()
+                        label = "phased-array" if user_input == 'p' else "curvilinear"
+                    else:
+                        label = "phased-array" if inner_radius <= 5 else "curvilinear"
+                        print(f"🔍 Detected probe type: {label} (radius1 = {inner_radius})")
+
                     if "Annotation Labels" not in data or not isinstance(data["Annotation Labels"], list) or not data["Annotation Labels"]:
                         data["Annotation Labels"] = [label]
                     else:
                         existing_label = data["Annotation Labels"][0]
                         if label not in existing_label:
-                            updated_label = f"{existing_label} | {label}"
-                            data["Annotation Labels"][0] = updated_label
+                            data["Annotation Labels"][0] = f"{existing_label} | {label}"
 
-                    # Save updated dictionary to file
                     with open(json_path, 'w') as f:
                         json.dump(data, f, indent=4)
-                else:
-                    print("⚠️  radius1 not found in JSON.")
 
-                print("\n📋 Updated JSON metadata:")
-                print(json.dumps(data, indent=4))
-                input("Press Enter to continue to the next image...")
-                plt.close()
-            except json.JSONDecodeError:
-                print(f"⚠️  Warning: Could not parse JSON file: {json_filename}")
-        else:
-            print(f"⚠️  No matching JSON file found: {json_filename}")
+                    print("\n📋 Updated JSON metadata:")
+                    print(json.dumps(data, indent=4))
 
+                    plt.close()
+
+                except json.JSONDecodeError:
+                    print(f"⚠️  Warning: Could not parse JSON file: {json_filename}")
+            else:
+                print(f"⚠️  No matching JSON file found: {json_filename}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
