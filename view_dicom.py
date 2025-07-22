@@ -18,7 +18,7 @@ def show_dicom_image(ds, filename):
     plt.imshow(img, cmap='gray' if img.ndim == 2 else None)
     plt.title(f"{filename} — Modality: {modality}")
     plt.axis('off')
-    plt.show(block=False)
+    plt.show(block=True)
 
 def load_and_display_all_dicoms(root_dir):
     for dirpath, _, files in os.walk(root_dir):
