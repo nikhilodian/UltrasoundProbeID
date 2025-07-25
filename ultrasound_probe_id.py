@@ -91,7 +91,7 @@ def load_and_display_all_dicoms(directory_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python3 ulrasound_probe_id.py <directory_with_dicom_files>")
+        print("Usage: python3 ultrasound_probe_id.py <directory_with_dicom_files>")
         sys.exit(1)
 
     dicom_dir = sys.argv[1]
